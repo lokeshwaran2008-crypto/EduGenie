@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGenie - AI Learning Assistant</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>EduGenie</h1>
+        <p>Google Gemini Powered Learning Assistant</p>
+      </div>
+    </div>
+    <span class="status">AI Learning</span>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <span class="eyebrow">SMART STUDY TOOL</span>
+      <h2>Learn faster with your AI study assistant.</h2>
+      <p>Ask questions, get simple explanations, create quizzes, summarize notes, and build a learning path.</p>
+    </section>
+
+    <section class="card">
+      <label for="task">Choose a learning task</label>
+      <select id="task">
+        <option value="qa">Question & Answer</option>
+        <option value="explain">Explain a Topic</option>
+        <option value="quiz">Generate Quiz</option>
+        <option value="summarize">Summarize Notes</option>
+        <option value="learning">Learning Path</option>
+      </select>
+
+      <label for="prompt">Enter your topic or question</label>
+      <textarea id="prompt" rows="8" placeholder="Example: Explain Python operators with simple examples."></textarea>
+
+      <div class="actions">
+        <button id="submitBtn" onclick="generateResult()">Generate</button>
+        <button class="secondary" onclick="clearAll()">Clear</button>
+      </div>
+
+      <div id="message" class="message"></div>
+
+      <div class="result-wrap">
+        <div class="result-title">Result</div>
+        <pre id="result">Your AI response will appear here.</pre>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    EduGenie • FastAPI + Google Gemini
+  </footer>
+
+<script>
+async function generateResult() {
+  const task = document.getElementById("task").value;
+  const prompt = document.getElementById("prompt").value.trim();
+  const result = document.getElementById("result");
+  const message = document.getElementById("message");
+  const button = document.getElementById("submitBtn");
+
+  if (!prompt) {
+    message.textContent = "Please enter a question or topic.";
+    message.className = "message error";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Generating...";
+  message.textContent = "EduGenie is thinking...";
+  message.className = "message";
+  result.textContent = "";
+
+  try {
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({task, prompt})
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || "Something went wrong.");
+    }
+
+    result.textContent = data.result;
+    message.textContent = "Done!";
+    message.className = "message success";
+  } catch (error) {
+    result.textContent = "Error: " + error.message;
+    message.textContent = "Request failed. Check your API key and terminal logs.";
+    message.className = "message error";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Generate";
+  }
+}
+
+function clearAll() {
+  document.getElementById("prompt").value = "";
+  document.getElementById("result").textContent = "Your AI response will appear here.";
+  document.getElementById("message").textContent = "";
+  document.getElementById("message").className = "message";
+}
+</script>
+</body>
+</html>
